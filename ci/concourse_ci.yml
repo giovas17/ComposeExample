@@ -1,0 +1,21 @@
+jobs:
+  - name: build
+    public: true
+    plan:
+      - get: resource-tutorial
+      - task: run-build-staging
+        config:
+          caches:
+            - path: $HOME/.gradle/
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: darkgeat/android-studio-gitlab-ci
+              tag: '2.0.0'
+          run:
+            path: app/build/outputs/
+            args:
+              - export GRADLE_USER_HOME=$(pwd)/.gradle
+              - chmod +x ./gradlew
+              - ./gradlew assembleDebug
