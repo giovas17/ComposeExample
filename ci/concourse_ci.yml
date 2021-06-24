@@ -1,5 +1,13 @@
+resources:
+  - name: resource-tutorial
+    type: git
+    source:
+      uri: https://github.com/giovas17/ComposeExample.git
+      branch: feature/adding_concourse_ci
+
 jobs:
   - name: build
+    max_in_flight: 1
     public: true
     plan:
       - get: resource-tutorial
@@ -7,15 +15,22 @@ jobs:
         config:
           caches:
             - path: $HOME/.gradle/
+            - path: $HOME/.m2/repository
+          params:
+            TERM: dumb
           platform: linux
+          inputs:
+            - name: resource-tutorial
           image_resource:
             type: docker-image
             source:
               repository: darkgeat/android-studio-gitlab-ci
               tag: '2.0.0'
           run:
-            path: app/build/outputs/
+            dir: resource-tutorial
+            path: ./gradlew
+            user: root
             args:
-              - export GRADLE_USER_HOME=$(pwd)/.gradle
-              - chmod +x ./gradlew
-              - ./gradlew assembleDebug
+              - 'assembleDebug'
+              - '--stacktrace'
+              - '--debug'
