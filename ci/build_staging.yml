@@ -18,13 +18,12 @@ image_resource:
     repository: darkgeat/android-studio-gitlab-ci
     tag: '2.0.0'
 run:
-  dir: resource-tutorial
   path: sh
   user: root
   args:
     - -c
     - |
+      export build_root=$(pwd)
+      cd resource-tutorial/
       ./gradlew assembleDebug --stacktrace -PdisablePreDex
-      ls -la
-      cd app/build/outputs
-      ls -la
+      cp app/build/outputs/apk/debug/app-debug.apk ${build_root}/generatedAPK/app-debug.apk
