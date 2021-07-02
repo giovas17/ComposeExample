@@ -19,9 +19,12 @@ image_resource:
     tag: '2.0.0'
 run:
   dir: resource-tutorial
-  path: ./gradlew
+  path: sh
   user: root
   args:
-    - 'assembleDebug'
-    - '--stacktrace'
-    - '-PdisablePreDex'
+    - -c
+    - |
+      ./gradlew assembleDebug --stacktrace -PdisablePreDex
+      ls -la
+      cd app/build/outputs
+      ls -la
