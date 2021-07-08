@@ -24,15 +24,46 @@ jobs:
           path: generatedAPK
           binary_name: app-debug.apk
 
+  - name: create-file-slack
+    plan:
+      - task: make-a-file
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: busybox }
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                ls -la
+                echo '[{"color":"#4CAF50","blocks":[{"text":{"text":"*ThiveMarketTest*","type":"mrkdwn"},"type":"section"},{"type":"section","fields":[{"text":"*Job:*\nbuild","type":"mrkdwn"},{"text":"*State:*\nSUCCESS","type":"mrkdwn"},{"text":"*Message:*\nThe build is successfully created","type":"mrkdwn"},{"text":"*Version:*\n1.0","type":"mrkdwn"}]}]}]' > ./files/created_file.json
+          outputs:
+            - name: files
+      - task: read-file
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: busybox }
+          inputs:
+            - name: files
+          run:
+            path: cat
+            args:
+              - ./files/created_file.json
+        on_success:
+          put: slack-alert
+          params:
+            text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME} successful - ${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+            attachments_file: ./files/created_file.json
+
   - name: notify-slack
     plan:
       - put: slack-alert
-      - put: distribution_appcenter
         params:
           channel: ((slack-channel))
-          text: |
-           The reports are:
-            http://my.concourse.url/teams/$BUILD_TEAM_NAME
           attachment_file: app/build/outputs/test/testDebugUnitTest/index.html
 
 #############

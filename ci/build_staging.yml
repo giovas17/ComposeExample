@@ -27,3 +27,5 @@ run:
       cd resource-tutorial/
       ./gradlew assembleDebug --stacktrace -PdisablePreDex
       cp app/build/outputs/apk/debug/app-debug.apk ${build_root}/generatedAPK/app-debug.apk
+      grep -E "^( *)versionName" app/build.gradle | awk '{print $2}' | tr -d '"' > ${build_root}/generatedAPK/versionName
+      grep -E "^( *)versionCode" app/build.gradle | awk '{print $2}' > ${build_root}/generatedAPK/versionCode
