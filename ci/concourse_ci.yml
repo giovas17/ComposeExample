@@ -42,7 +42,7 @@ jobs:
               params:
                 TYPE: Build
                 STATE: Success
-                MESSAGE: 'The build has been created successfully'
+                MESSAGE: The build has been created successfully
                 LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
               on_success:
                 put: slack-alert

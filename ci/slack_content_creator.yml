@@ -20,7 +20,7 @@ outputs:
 params:
   TYPE: Build
   STATE: Success
-  MESSAGE: 'This is a test message'
+  MESSAGE: This is a test message
   LINK: link
 
 run:
@@ -33,4 +33,4 @@ run:
       export build_root=$(pwd)
       cd content-generator/
       echo '' > ${build_root}/files/created_file.json
-      ./gradlew run --args="Slack ((TYPE)) ((STATE)) ((MESSAGE)) ((LINK)) ${build_root}/files/created_file.json"
+      ./gradlew run --args="Slack ${TYPE} ${STATE} '${MESSAGE}' ${LINK} ${build_root}/files/created_file.json"
