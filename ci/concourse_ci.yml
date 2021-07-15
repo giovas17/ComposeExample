@@ -1,3 +1,20 @@
+---
+task-config: &task-config
+  platform: linux
+  caches:
+    - path: $HOME/.m2/repository
+    - path: $HOME/.gradle/caches/
+    - path: $HOME/.gradle/wrapper/
+  image_resource:
+    type: registry-image
+    source:
+      repository: gradle
+      tag: jdk8-slim
+  inputs:
+    - name: content-generator
+  outputs:
+    - name: files
+
 jobs:
   - name: test
     max_in_flight: 1
@@ -17,6 +34,21 @@ jobs:
         passed: [ test ]
       - task: run-build-staging
         file: resource-tutorial/ci/build_staging.yml
+        on_success:
+          do:
+            - get: content-generator
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              vars:
+                TYPE: Build
+                STATE: Success
+                MESSAGE: 'The build has been created successfully'
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
       - put: distribution_appcenter
         inputs:
           - generatedAPK
@@ -26,21 +58,22 @@ jobs:
 
   - name: create-file-slack
     plan:
+      - get: content-generator
       - task: make-a-file
         config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source: { repository: busybox }
+          << : *task-config
           run:
             path: sh
+            user: root
             args:
               - -c
               - |
                 ls -la
-                echo '[{"color":"#4CAF50","blocks":[{"text":{"text":"*ThiveMarketTest*","type":"mrkdwn"},"type":"section"},{"type":"section","fields":[{"text":"*Job:*\nbuild","type":"mrkdwn"},{"text":"*State:*\nSUCCESS","type":"mrkdwn"},{"text":"*Message:*\nThe build is successfully created","type":"mrkdwn"},{"text":"*Version:*\n1.0","type":"mrkdwn"}]}]}]' > ./files/created_file.json
-          outputs:
-            - name: files
+                export build_root=$(pwd)
+                cd content-generator/
+                echo '' > ${build_root}/files/created_file.json
+                ./gradlew run --args="Slack build success 'The build is successfully created' http://localhost:8080/teams/main/pipelines/concourse_example/jobs/create-file-slack/builds/13 ${build_root}/files/created_file.json"
+
       - task: read-file
         config:
           platform: linux
@@ -56,7 +89,7 @@ jobs:
         on_success:
           put: slack-alert
           params:
-            text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME} successful - ${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+            text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
             attachments_file: ./files/created_file.json
 
   - name: notify-slack
@@ -76,6 +109,13 @@ resources:
     source:
       uri: https://github.com/giovas17/ComposeExample.git
       branch: feature/adding_concourse_ci
+
+  - icon: github
+    name: content-generator
+    type: git
+    source:
+      uri: https://github.com/giovas17/Content-Alert-Creator.git
+      branch: master
 
   #- icon: github
   #  name: resource-tutorial-pull-request

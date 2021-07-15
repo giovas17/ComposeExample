@@ -1,0 +1,37 @@
+---
+platform: linux
+
+caches:
+  - path: $HOME/.m2/repository
+  - path: $HOME/.gradle/caches/
+  - path: $HOME/.gradle/wrapper/
+
+image_resource:
+  type: registry-image
+  source:
+    repository: gradle
+    tag: jdk8-slim
+
+inputs:
+  - name: content-generator
+
+outputs:
+  - name: files
+
+vars:
+  TYPE: Build
+  STATE: Success
+  MESSAGE: 'This is a test message'
+  LINK: link
+
+run:
+  path: sh
+  user: root
+  args:
+    - -c
+    - |
+      ls -la
+      export build_root=$(pwd)
+      cd content-generator/
+      echo '' > ${build_root}/files/created_file.json
+      ./gradlew run --args="Slack ((TYPE)) ((STATE)) ((MESSAGE)) ((LINK)) ${build_root}/files/created_file.json"
