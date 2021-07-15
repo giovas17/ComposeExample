@@ -1,20 +1,3 @@
----
-task-config: &task-config
-  platform: linux
-  caches:
-    - path: $HOME/.m2/repository
-    - path: $HOME/.gradle/caches/
-    - path: $HOME/.gradle/wrapper/
-  image_resource:
-    type: registry-image
-    source:
-      repository: gradle
-      tag: jdk8-slim
-  inputs:
-    - name: content-generator
-  outputs:
-    - name: files
-
 jobs:
   - name: test
     max_in_flight: 1
@@ -56,41 +39,41 @@ jobs:
           path: generatedAPK
           binary_name: app-debug.apk
 
-  - name: create-file-slack
-    plan:
-      - get: content-generator
-      - task: make-a-file
-        config:
-          << : *task-config
-          run:
-            path: sh
-            user: root
-            args:
-              - -c
-              - |
-                ls -la
-                export build_root=$(pwd)
-                cd content-generator/
-                echo '' > ${build_root}/files/created_file.json
-                ./gradlew run --args="Slack build success 'The build is successfully created' http://localhost:8080/teams/main/pipelines/concourse_example/jobs/create-file-slack/builds/13 ${build_root}/files/created_file.json"
+#  - name: create-file-slack
+#    plan:
+#      - get: content-generator
+#      - task: make-a-file
+#        config:
+#          << : *task-config
+#          run:
+#            path: sh
+#            user: root
+#            args:
+#              - -c
+#              - |
+#                ls -la
+#                export build_root=$(pwd)
+#                cd content-generator/
+#                echo '' > ${build_root}/files/created_file.json
+#                ./gradlew run --args="Slack build success 'The build is successfully created' http://localhost:8080/teams/main/pipelines/concourse_example/jobs/create-file-slack/builds/13 ${build_root}/files/created_file.json"
 
-      - task: read-file
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source: { repository: busybox }
-          inputs:
-            - name: files
-          run:
-            path: cat
-            args:
-              - ./files/created_file.json
-        on_success:
-          put: slack-alert
-          params:
-            text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
-            attachments_file: ./files/created_file.json
+#      - task: read-file
+#        config:
+#          platform: linux
+#          image_resource:
+#            type: registry-image
+#            source: { repository: busybox }
+#          inputs:
+#            - name: files
+#          run:
+#            path: cat
+#            args:
+#              - ./files/created_file.json
+#        on_success:
+#          put: slack-alert
+#          params:
+#            text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+#            attachments_file: ./files/created_file.json
 
   - name: notify-slack
     plan:
