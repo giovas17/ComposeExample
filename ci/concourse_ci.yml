@@ -39,7 +39,7 @@ jobs:
             - get: content-generator
             - task: create-slack-content
               file: resource-tutorial/ci/slack_content_creator.yml
-              vars:
+              params:
                 TYPE: Build
                 STATE: Success
                 MESSAGE: 'The build has been created successfully'
