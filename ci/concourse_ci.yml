@@ -7,6 +7,35 @@ jobs:
         trigger: true
       - task: run-test-staging
         file: resource-tutorial/ci/unit_testing.yml
+      - get: content-generator
+        on_success:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Test
+                STATE: Success
+                MESSAGE: All tests have been passed
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
+        on_failure:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Test
+                STATE: Failed
+                MESSAGE: Some tests have failed
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
 
   - name: build
     max_in_flight: 1
