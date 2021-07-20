@@ -34,5 +34,4 @@ run:
       export build_root=$(pwd)
       cd content-generator/
       echo '' > ${build_root}/files/created_file.json
-      cat ${build_root}/generatedAPK/versionName
-      ./gradlew run --args="Slack job=${TYPE} state=${STATE} message='${MESSAGE}' link=${LINK} file=${build_root}/files/created_file.json"
+      ./gradlew run --args="Slack job=${TYPE} state=${STATE} message='${MESSAGE}' link=${LINK} file=${build_root}/files/created_file.json version_name=$(cat ${build_root}/generatedAPK/versionName)"
