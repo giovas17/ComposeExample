@@ -17,9 +17,9 @@ jobs:
         passed: [ test ]
       - task: run-build-staging
         file: resource-tutorial/ci/build_staging.yml
+      - get: content-generator
         on_success:
           do:
-            - get: content-generator
             - task: create-slack-content
               file: resource-tutorial/ci/slack_content_creator.yml
               params:
@@ -32,52 +32,31 @@ jobs:
                 params:
                   text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
                   attachments_file: ./files/created_file.json
-      - put: distribution_appcenter
-        inputs:
-          - generatedAPK
-        params:
-          path: generatedAPK
-          binary_name: app-debug.apk
-
-#  - name: create-file-slack
-#    plan:
-#      - get: content-generator
-#      - task: make-a-file
-#        config:
-#          << : *task-config
-#          run:
-#            path: sh
-#            user: root
-#            args:
-#              - -c
-#              - |
-#                ls -la
-#                export build_root=$(pwd)
-#                cd content-generator/
-#                echo '' > ${build_root}/files/created_file.json
-#                ./gradlew run --args="Slack build success 'The build is successfully created' http://localhost:8080/teams/main/pipelines/concourse_example/jobs/create-file-slack/builds/13 ${build_root}/files/created_file.json"
-
-#      - task: read-file
-#        config:
-#          platform: linux
-#          image_resource:
-#            type: registry-image
-#            source: { repository: busybox }
-#          inputs:
-#            - name: files
-#          run:
-#            path: cat
-#            args:
-#              - ./files/created_file.json
-#        on_success:
-#          put: slack-alert
-#          params:
-#            text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
-#            attachments_file: ./files/created_file.json
+        on_failure:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Build
+                STATE: Failed
+                MESSAGE: The build has an error during the execution
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
+      #- put: distribution_appcenter
+      #  inputs:
+      #    - generatedAPK
+      #  params:
+      #    path: generatedAPK
+      #    binary_name: app-debug.apk
 
   - name: notify-slack
     plan:
       - put: slack-alert
+      - put: distribution_appcenter
         params:
           channel: ((slack-channel))
           attachment_file: app/build/outputs/test/testDebugUnitTest/index.html
