@@ -75,12 +75,12 @@ jobs:
                 params:
                   text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
                   attachments_file: ./files/created_file.json
-      #- put: distribution_appcenter
-      #  inputs:
-      #    - generatedAPK
-      #  params:
-      #    path: generatedAPK
-      #    binary_name: app-debug.apk
+      - put: distribution_appcenter
+        inputs:
+          - generatedAPK
+        params:
+          path: generatedAPK
+          binary_name: app-debug.apk
 
   - name: notify-slack
     plan:
