@@ -1,6 +1,7 @@
 ---
-slack-hook-url: https://hooks.slack.com/services/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
+slack-hook-url: https://hooks.slack.com/services/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
 slack-channel: '#concourse-tests'
+git-access-token: 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
 appcenter-api_token: 9bec034a85e2dad704e2f0e97f5b9724717d833f
 appcenter-owner: darkgeat-zacb
 appcenter-app_name: Concourse-tutorial

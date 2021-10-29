@@ -124,6 +124,7 @@ resources:
     type: pull-request
     source:
       repository: https://github.com/giovas17/ComposeExample.git
+      access_token: ((git-access-token))
       base_branch: develop
 
   - name: slack-alert
