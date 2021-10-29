@@ -26,4 +26,5 @@ run:
     - -c
     - |
       echo $PATH
+      . /start_emulator.bash
       ls -la
