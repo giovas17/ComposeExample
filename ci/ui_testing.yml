@@ -18,13 +18,12 @@ image_resource:
   type: docker-image
   source:
     repository: darkgeat/android-studio-gitlab-ci
-    tag: '3.0.0'
+    tag: '2.0.0'
 run:
   path: sh
   user: root
   args:
     - -c
     - |
-      cd /sdk/cmdline-tools/bin
-      ls -la
-      ./avdmanager --verbose create avd -n test -k "system-images;android-30;google_apis;x86"
+      cd pr/
+      ./gradlew -Pci --console=plain :app:testDebugUnitTest
