@@ -27,3 +27,4 @@ run:
     - |
       cd $HOME/.android/cache
       ls -la
+      ./avdmanager --version
