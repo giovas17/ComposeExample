@@ -25,6 +25,7 @@ run:
   args:
     - -c
     - |
+      echo $PATH
       cd ~/sdk/cmdline-tools/bin/
       ls -la
       ./avdmanager --version
