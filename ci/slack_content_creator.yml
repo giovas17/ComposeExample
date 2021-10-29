@@ -34,4 +34,12 @@ run:
       export build_root=$(pwd)
       cd content-generator/
       echo '' > ${build_root}/files/created_file.json
-      ./gradlew run --args="Slack job=${TYPE} state=${STATE} message='${MESSAGE}' link=${LINK} file=${build_root}/files/created_file.json version_name=$(cat ${build_root}/generatedAPK/versionName)"
+      FILE=${build_root}/generatedAPK/unitTestResults.html
+      PATH_FILE=''
+      if [ -e "$FILE" ]; then
+        echo 'The results report file as HTML exists and will be processed'
+        PATH_FILE=$FILE
+      else
+        echo 'The results report file as HTML does not exists'
+      fi
+      ./gradlew run --args="Slack job=${TYPE} state=${STATE} message='${MESSAGE}' link=${LINK} file=${build_root}/files/created_file.json version_name=$(cat ${build_root}/generatedAPK/versionName) pr_information=${build_root}/pr-metadata/metadata.json results=${PATH_FILE}"

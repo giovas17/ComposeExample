@@ -37,6 +37,17 @@ jobs:
                   text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
                   attachments_file: ./files/created_file.json
 
+  - name: ui_test
+    max_in_flight: 1
+    public: true
+    plan:
+      - get: resource-tutorial-pull-request
+        trigger: true
+      - task: run-ui-test-staging
+        file: resource-tutorial-pull-request/ci/ui_testing.yml
+        input_mapping:
+          pr: resource-tutorial-pull-request
+
   - name: build
     max_in_flight: 1
     public: true
@@ -108,12 +119,12 @@ resources:
       uri: https://github.com/giovas17/Content-Alert-Creator.git
       branch: master
 
-  #- icon: github
-  #  name: resource-tutorial-pull-request
-  #  type: pull-request
-  #  source:
-  #    uri: https://github.com/giovas17/ComposeExample.git
-  #    branch: develop
+  - icon: github
+    name: resource-tutorial-pull-request
+    type: pull-request
+    source:
+      repository: https://github.com/giovas17/ComposeExample.git
+      base_branch: develop
 
   - name: slack-alert
     type: slack-notification
@@ -144,7 +155,7 @@ resource_types:
       repository: tomoyukim/concourse-appcenter-resource
       tag: latest
 
-  #- name: pull-request
-  #  type: docker-image
-  #  source:
-  #    repository: jtarchie/pr
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: teliaoss/github-pr-resource
