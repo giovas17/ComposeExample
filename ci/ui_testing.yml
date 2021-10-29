@@ -25,6 +25,6 @@ run:
   args:
     - -c
     - |
-      cd $HOME/.android/cache
+      cd ~/sdk/cmdline-tools/bin/
       ls -la
       ./avdmanager --version
