@@ -25,8 +25,5 @@ run:
   args:
     - -c
     - |
+      cd $HOME
       ls -la
-      cd $HOME/.android/sdk
-      ls -la
-      cd pr/
-      ./gradlew -Pci --console=plain :app:connectedCheck
