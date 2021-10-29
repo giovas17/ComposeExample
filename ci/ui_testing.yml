@@ -25,6 +25,5 @@ run:
   args:
     - -c
     - |
-      ./sdk/emulator/emulator -list-avds
-      cd pr/
-      ./gradlew -Pci --console=plain :app:connectedCheck
+      cd /sdk/emulator/
+      ls -la
