@@ -1,0 +1,31 @@
+---
+platform: linux
+
+caches:
+  - path: $HOME/.gradle/
+  - path: $HOME/.m2/repository
+
+params:
+  TERM: dumb
+
+inputs:
+  - name: resource-tutorial
+outputs:
+  - name: reports
+  - name: generatedAPK
+image_resource:
+  type: docker-image
+  source:
+    repository: darkgeat/android-studio-gitlab-ci
+    tag: '3.0.0'
+run:
+  path: sh
+  user: root
+  args:
+    - -c
+    - |
+      export build_root=$(pwd)
+      cd resource-tutorial/
+      ./gradlew -Pci --console=plain :app:testDebugUnitTest
+      grep -E "^( *)versionName" app/build.gradle | awk '{print $2}' | tr -d '"' > ${build_root}/generatedAPK/versionName
+      grep -E "^( *)versionCode" app/build.gradle | awk '{print $2}' > ${build_root}/generatedAPK/versionCode

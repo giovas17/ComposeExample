@@ -1,0 +1,161 @@
+jobs:
+  - name: test
+    max_in_flight: 1
+    public: true
+    plan:
+      - get: resource-tutorial
+        trigger: true
+      - task: run-test-staging
+        file: resource-tutorial/ci/unit_testing.yml
+      - get: content-generator
+        on_success:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Test
+                STATE: Success
+                MESSAGE: All tests have been passed
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
+        on_failure:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Test
+                STATE: Failed
+                MESSAGE: Some tests have failed
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
+
+  - name: ui_test
+    max_in_flight: 1
+    public: true
+    plan:
+      - get: resource-tutorial-pull-request
+        trigger: true
+      - task: run-ui-test-staging
+        file: resource-tutorial-pull-request/ci/ui_testing.yml
+        input_mapping:
+          pr: resource-tutorial-pull-request
+
+  - name: build
+    max_in_flight: 1
+    public: true
+    plan:
+      - get: resource-tutorial
+        trigger: true
+        passed: [ test ]
+      - task: run-build-staging
+        file: resource-tutorial/ci/build_staging.yml
+      - get: content-generator
+        on_success:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Build
+                STATE: Success
+                MESSAGE: The build has been created successfully
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
+        on_failure:
+          do:
+            - task: create-slack-content
+              file: resource-tutorial/ci/slack_content_creator.yml
+              params:
+                TYPE: Build
+                STATE: Failed
+                MESSAGE: The build has an error during the execution
+                LINK: "${ATC_EXTERNAL_URL}/teams/main/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+              on_success:
+                put: slack-alert
+                params:
+                  text: "Build ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME} #${BUILD_NAME}"
+                  attachments_file: ./files/created_file.json
+      - put: distribution_appcenter
+        inputs:
+          - generatedAPK
+        params:
+          path: generatedAPK
+          binary_name: app-debug.apk
+
+  - name: notify-slack
+    plan:
+      - put: slack-alert
+      - put: distribution_appcenter
+        params:
+          channel: ((slack-channel))
+          attachment_file: app/build/outputs/test/testDebugUnitTest/index.html
+
+#############
+# RESOURCES #
+#############
+resources:
+  - icon: github
+    name: resource-tutorial
+    type: git
+    source:
+      uri: https://github.com/giovas17/ComposeExample.git
+      branch: feature/adding_concourse_ci
+
+  - icon: github
+    name: content-generator
+    type: git
+    source:
+      uri: https://github.com/giovas17/Content-Alert-Creator.git
+      branch: master
+
+  - icon: github
+    name: resource-tutorial-pull-request
+    type: pull-request
+    source:
+      repository: https://github.com/giovas17/ComposeExample.git
+      base_branch: develop
+
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: ((slack-hook-url))
+
+  - name: distribution_appcenter
+    type: appcenter
+    source:
+      api_token: ((appcenter-api_token))
+      owner: ((appcenter-owner))
+      app_name: ((appcenter-app_name))
+      group_id: ((appcenter-group_id))
+
+##################
+# RESOURCE_TYPES #
+##################
+resource_types:
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+
+  - name: appcenter
+    type: docker-image
+    source:
+      repository: tomoyukim/concourse-appcenter-resource
+      tag: latest
+
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: teliaoss/github-pr-resource

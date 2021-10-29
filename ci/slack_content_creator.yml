@@ -1,0 +1,45 @@
+---
+platform: linux
+
+caches:
+  - path: $HOME/.m2/repository
+  - path: $HOME/.gradle/caches/
+  - path: $HOME/.gradle/wrapper/
+image_resource:
+  type: registry-image
+  source:
+    repository: gradle
+    tag: jdk8-slim
+
+inputs:
+  - name: content-generator
+  - name: generatedAPK
+
+outputs:
+  - name: files
+
+params:
+  TYPE: Build
+  STATE: Success
+  MESSAGE: This is a test message
+  LINK: link
+
+run:
+  path: sh
+  user: root
+  args:
+    - -c
+    - |
+      ls -la
+      export build_root=$(pwd)
+      cd content-generator/
+      echo '' > ${build_root}/files/created_file.json
+      FILE=${build_root}/generatedAPK/unitTestResults.html
+      PATH_FILE=''
+      if [ -e "$FILE" ]; then
+        echo 'The results report file as HTML exists and will be processed'
+        PATH_FILE=$FILE
+      else
+        echo 'The results report file as HTML does not exists'
+      fi
+      ./gradlew run --args="Slack job=${TYPE} state=${STATE} message='${MESSAGE}' link=${LINK} file=${build_root}/files/created_file.json version_name=$(cat ${build_root}/generatedAPK/versionName) pr_information=${build_root}/pr-metadata/metadata.json results=${PATH_FILE}"
