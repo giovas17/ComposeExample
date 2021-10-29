@@ -26,4 +26,4 @@ run:
     - -c
     - |
       cd pr/
-      ./gradlew -Pci --console=plain :app:testDebugUnitTest
+      ./gradlew -Pci --console=plain :app:connectedCheck
