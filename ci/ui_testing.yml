@@ -4,7 +4,7 @@ platform: linux
 caches:
   - path: $HOME/.gradle/
   - path: $HOME/.m2/repository
-  - path: $HOME/.android/sdk
+  - path: $HOME/.android/sdk/cmdline-tools/bin
 
 params:
   TERM: dumb
