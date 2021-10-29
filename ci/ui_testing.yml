@@ -25,5 +25,5 @@ run:
   args:
     - -c
     - |
-      cd $HOME
+      cd $HOME/.android
       ls -la
