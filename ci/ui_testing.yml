@@ -25,5 +25,5 @@ run:
   args:
     - -c
     - |
-      cd /sdk/emulator/
+      cd $HOME/sdk/emulator/
       ls -la
