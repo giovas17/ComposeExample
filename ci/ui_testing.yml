@@ -4,6 +4,7 @@ platform: linux
 caches:
   - path: $HOME/.gradle/
   - path: $HOME/.m2/repository
+  - path: $HOME/.android/sdk
 
 params:
   TERM: dumb
@@ -24,6 +25,8 @@ run:
   args:
     - -c
     - |
+      ls -la
+      cd $HOME/.android/sdk
       ls -la
       cd pr/
       ./gradlew -Pci --console=plain :app:connectedCheck

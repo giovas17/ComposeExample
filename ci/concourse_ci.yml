@@ -123,9 +123,10 @@ resources:
     name: resource-tutorial-pull-request
     type: pull-request
     source:
-      repository: https://github.com/giovas17/ComposeExample.git
-      access_token: ((git-access-token))
+      repository: giovas17/ComposeExample
       base_branch: develop
+      access_token: ((git-access-token))
+      ignore_paths: [Dockerfile]
 
   - name: slack-alert
     type: slack-notification
