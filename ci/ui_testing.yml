@@ -25,7 +25,6 @@ run:
   args:
     - -c
     - |
-      echo $PATH
       cd /sdk/cmdline-tools/bin
       ls -la
-      ./avdmanager --version
+      ./avdmanager --verbose create avd -n test -k "system-images;android-30;google_apis;x86"
