@@ -47,6 +47,7 @@ jobs:
         file: resource-tutorial-pull-request/ci/ui_testing.yml
         input_mapping:
           pr: resource-tutorial-pull-request
+          runScripts: resource-tutorial/scripts
 
   - name: build
     max_in_flight: 1

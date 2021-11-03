@@ -11,6 +11,7 @@ params:
 
 inputs:
   - name: pr
+  - name: runScripts
 outputs:
   - name: reports
   - name: generatedAPK
@@ -25,7 +26,7 @@ run:
   args:
     - -c
     - |
-      . /start_emulator.sh
       cd pr/
+      . /runScripts/emulator.sh
       ./gradlew connectedAndroidTest
       ls -la
