@@ -25,6 +25,7 @@ run:
   args:
     - -c
     - |
-      . /start_emulator.sh & ./gradlew connectedAndroidTest
-      adb devices
+      . /start_emulator.sh
+      cd pr/
+      ./gradlew connectedAndroidTest
       ls -la
