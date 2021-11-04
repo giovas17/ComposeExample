@@ -27,6 +27,7 @@ run:
     - |
       cd pr/
       cat ci/scripts/emulator.sh
+      emulator -list-avds
       . ci/scripts/emulator.sh
       ./gradlew connectedAndroidTest
       ls -la
