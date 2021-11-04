@@ -11,7 +11,7 @@ function config_emulator_settings() {
 function wait_emulator_to_be_ready() {
   adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
   emulator -avd "test" -verbose -no-boot-anim -no-snapshot-save -no-window -accel off -gpu auto -skin 1440x2880 &
-  boot_completed=false
+  boot_completed=true
   while [ "$boot_completed" == false ]; do
     status=$(adb wait-for-device shell getprop sys.boot_completed | tr -d '\r')
     echo "Boot Status: $status"
