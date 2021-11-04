@@ -12,17 +12,25 @@ function wait_emulator_to_be_ready() {
   adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
   emulator -avd "test" -verbose -no-boot-anim -no-snapshot-save -no-window -accel off -gpu off -skin 1440x2880 -noaudio &
   boot_completed=false
-  while [ "$boot_completed" == false ]; do
-    status=$(adb wait-for-device shell getprop sys.boot_completed | tr -d '\r')
-    echo "Boot Status: $status"
+  adb wait-for-device shell <<ENDSCRIPT
+      echo -n "Waiting for device to boot "
+      echo "" > /data/local/tmp/zero
+      getprop dev.bootcomplete > /data/local/tmp/bootcomplete
+      while cmp /data/local/tmp/zero /data/local/tmp/bootcomplete; do
+      {
+          echo -n "."
+          sleep 1
+          getprop dev.bootcomplete > /data/local/tmp/bootcomplete
+      }; done
+      echo "Booted."
+      exit
+  ENDSCRIPT
 
-    if [ "$status" == "1" ]; then
-      boot_completed=true
-      echo "Emulator successfully started!"
-    else
-      sleep 1
-    fi
-  done
+  echo "Waiting 30 secs for us to be really booted"
+  sleep 30
+
+  echo "Unlocking screen"
+  adb shell "input keyevent 82"
 }
 
 function start_emulator_if_possible() {
