@@ -13,7 +13,7 @@ function wait_emulator_to_be_ready() {
   adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
   adb shell avbctl disable-verification
   adb disable-verity
-  emulator -avd "test" -verbose -no-boot-anim -no-snapshot -no-window -accel off -gpu off -skin 1440x2880 -noaudio -debug-all &
+  emulator -avd "test" -verbose -no-boot-anim -no-snapshot -no-window -accel off -gpu host -skin 1440x2880 -noaudio -debug-all &
   boot_completed=false
   while [ "$boot_completed" == false ]; do
     status=$(adb wait-for-device shell getprop sys.boot_completed | tr -d '\r')
