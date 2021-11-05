@@ -14,7 +14,7 @@ function wait_emulator_to_be_ready() {
   adb shell avbctl disable-verification
   adb disable-verity
   adb emu sensor set acceleration 5:5:5
-  emulator -avd "test" -verbose -no-boot-anim -no-snapshot -no-window -accel off -gpu guest -skin 1440x2880 -noaudio -debug-all &
+  emulator -avd "test" -verbose -no-boot-anim -no-snapshot -no-window -accel off -gpu host -skin 1440x2880 -noaudio -memory 2048 -debug-all &
   boot_completed=false
   while [ "$boot_completed" == false ]; do
     status=$(adb wait-for-device shell getprop sys.boot_completed | tr -d '\r')
