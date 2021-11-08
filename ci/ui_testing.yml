@@ -25,6 +25,7 @@ run:
   args:
     - -c
     - |
+      aws help
       cd pr/
       cat ci/scripts/emulator.sh
       emulator -list-avds
