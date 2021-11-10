@@ -28,6 +28,7 @@ run:
     - -c
     - |
       apt-get install jq
+      chmod +x jq
       aws configure import --csv ci/scripts/rootkey.csv
       aws configure set region us-west-2
 
