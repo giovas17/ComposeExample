@@ -10,6 +10,9 @@ params:
   TERM: dumb
   PROJECT_ARN: arn:aws:devicefarm:us-west-2:944572984736:project:a202796d-364d-4917-96b7-52196f6ae4d8
   DEVICE_POOL_ARN: arn:aws:devicefarm:us-west-2:944572984736:devicepool:a202796d-364d-4917-96b7-52196f6ae4d8/59f56329-351a-4f26-8fb9-3f68aa0f0326
+  ACCESS_KEY_ID: AKIA5X3HP5WQAUHCTYWX
+  SECRET_ACCESS_KEY: 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
+  REGION: us-west-2
 
 inputs:
   - name: pr
@@ -20,20 +23,43 @@ image_resource:
   type: docker-image
   source:
     repository: darkgeat/android-studio-gitlab-ci
-    tag: '3.1.1'
+    tag: '3.3.0'
 run:
   path: sh
   user: root
   args:
     - -c
     - |
-      aws configure import --csv ci/scripts/rootkey.csv
-      aws --version
-      aws configure set region us-west-2
+      export build_root=$(pwd)
+      aws configure set region "$REGION"
+      aws configure set aws_access_key_id "$ACCESS_KEY_ID"
+      aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
 
-      aws devicefarm create-upload --project-arn "$PROJECT_ARN" --name app.apk --type ANDROID_APP --output json > /android/app-debug-upload.txt
+      mkdir ${build_root}/android-aws/
+      echo '' >> ${build_root}/android-aws/app-debug-upload.txt
+      echo '' >> ${build_root}/android-aws/app-test-upload.txt
+      echo '' >> ${build_root}/android-aws/ui-test-results.txt
 
-      ANDROID_APP_URL=$(jq -r '.url' /android/app-debug-upload.txt)
-      ANDROID_APP_ARN=$(jq -r '.arn' /android/app-debug-upload.txt)
-      curl -T /android/app-debug.apk $ANDROID_APP_URL
+      cd pr/
+      ./gradlew assembleDebug --stacktrace -PdisablePreDex
 
+      VERSION_CODE=$(grep -E "^( *)versionCode" app/build.gradle | awk '{print $2}')
+
+      aws devicefarm create-upload --project-arn "$PROJECT_ARN" --name app_to_test.apk --type ANDROID_APP --output json > ${build_root}/android-aws/app-debug-upload.txt
+      cat ${build_root}/android-aws/app-debug-upload.txt
+
+      aws devicefarm create-upload --project-arn "$PROJECT_ARN" --name app_test_instrumentation.apk --type INSTRUMENTATION_TEST_PACKAGE --output json > ${build_root}/android-aws/app-test-upload.txt
+      cat ${build_root}/android-aws/app-test-upload.txt
+
+      ANDROID_APP_URL=$(jq -r '.url' ${build_root}/android-aws/app-debug-upload.txt)
+      ANDROID_APP_ARN=$(jq -r '.arn' ${build_root}/android-aws/app-debug-upload.txt)
+      ANDROID_TEST_URL=$(jq -r '.url' ${build_root}/android-aws/app-test-upload.txt)
+      ANDROID_TEST_ARN=$(jq -r '.arn' ${build_root}/android-aws/app-test-upload.txt)
+
+      curl -T app/build/outputs/apk/debug/app-debug.apk $ANDROID_APP_URL
+      curl -T ${build_root}/ci/ui-test/app-debug-androidTest.apk $ANDROID_APP_URL
+
+      sleep 10
+
+      aws devicefarm schedule-run --project-arn $PROJECT_ARN --app-arn "$ANDROID_APP_ARN" --device-pool-arn "$DEVICE_POOL_ARN" --name "test run build version: $VERSION_CODE" --test type=INSTRUMENTATION,testPackageArn=$ANDROID_TEST_ARN --configuration billingMethod=UNMETERED --output json > ${build_root}/android-aws/ui-test-results.txt
+      cat ${build_root}/android-aws/ui-test-results.txt
