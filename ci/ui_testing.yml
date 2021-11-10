@@ -57,7 +57,7 @@ run:
       ANDROID_TEST_ARN=$(jq -r '.arn' ${build_root}/android-aws/app-test-upload.txt)
 
       curl -T app/build/outputs/apk/debug/app-debug.apk $ANDROID_APP_URL
-      curl -T ${build_root}/ci/ui-test/app-debug-androidTest.apk $ANDROID_TEST_URL
+      curl -T ci/ui-test/app-debug-androidTest.apk $ANDROID_TEST_URL
 
       sleep 10
 
