@@ -27,12 +27,9 @@ run:
   args:
     - -c
     - |
+      apt-get install jq
       aws configure import --csv ci/scripts/rootkey.csv
       aws configure set region us-west-2
-
-      cd pr/
-
-      ./gradlew assemble
 
       aws devicefarm create-upload --project-arn "$PROJECT_ARN" --name app.apk --type ANDROID_APP --output json > /android/app-debug-upload.txt
 
