@@ -27,9 +27,8 @@ run:
   args:
     - -c
     - |
-      apt-get install jq
-      chmod +x jq
       aws configure import --csv ci/scripts/rootkey.csv
+      aws --version
       aws configure set region us-west-2
 
       aws devicefarm create-upload --project-arn "$PROJECT_ARN" --name app.apk --type ANDROID_APP --output json > /android/app-debug-upload.txt
