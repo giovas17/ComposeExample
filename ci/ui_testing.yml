@@ -52,10 +52,10 @@ run:
       aws devicefarm create-upload --project-arn "$PROJECT_ARN" --name app_test_instrumentation.apk --type INSTRUMENTATION_TEST_PACKAGE --output json > ${build_root}/android-aws/app-test-upload.txt
       cat ${build_root}/android-aws/app-test-upload.txt
 
-      ANDROID_APP_URL=$(jq -r '.url' ${build_root}/android-aws/app-debug-upload.txt)
-      ANDROID_APP_ARN=$(jq -r '.arn' ${build_root}/android-aws/app-debug-upload.txt)
-      ANDROID_TEST_URL=$(jq -r '.url' ${build_root}/android-aws/app-test-upload.txt)
-      ANDROID_TEST_ARN=$(jq -r '.arn' ${build_root}/android-aws/app-test-upload.txt)
+      ANDROID_APP_URL=$(jq -r '.upload.url' ${build_root}/android-aws/app-debug-upload.txt)
+      ANDROID_APP_ARN=$(jq -r '.upload.arn' ${build_root}/android-aws/app-debug-upload.txt)
+      ANDROID_TEST_URL=$(jq -r '.upload.url' ${build_root}/android-aws/app-test-upload.txt)
+      ANDROID_TEST_ARN=$(jq -r '.upload.arn' ${build_root}/android-aws/app-test-upload.txt)
 
       curl -T ${build_root}/generatedAPK/app-debug.apk "${ANDROID_APP_URL}"
       curl -T ci/ui-test/app-debug-androidTest.apk "${ANDROID_TEST_URL}"
