@@ -62,5 +62,5 @@ run:
 
       sleep 10
 
-      aws devicefarm schedule-run --project-arn $PROJECT_ARN --app-arn "${ANDROID_APP_ARN}" --device-pool-arn "${DEVICE_POOL_ARN}" --name "test run build version: ${VERSION_CODE}" --test type=INSTRUMENTATION,testPackageArn="${ANDROID_TEST_ARN}" --configuration billingMethod=UNMETERED --output json > ${build_root}/android-aws/ui-test-results.txt
+      aws devicefarm schedule-run --project-arn $PROJECT_ARN --app-arn "${ANDROID_APP_ARN}" --device-pool-arn "${DEVICE_POOL_ARN}" --name "test run build version: ${VERSION_CODE}" --test type=INSTRUMENTATION,testPackageArn="${ANDROID_TEST_ARN}" --output json > ${build_root}/android-aws/ui-test-results.txt
       cat ${build_root}/android-aws/ui-test-results.txt
