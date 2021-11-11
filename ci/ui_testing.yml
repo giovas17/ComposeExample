@@ -41,8 +41,9 @@ run:
       echo '' >> ${build_root}/android-aws/ui-test-results.txt
 
       cd pr/
-      ./gradlew assembleDebug --stacktrace -PdisablePreDex
+      ./gradlew assembleDebug assembleAndroidTest --stacktrace -PdisablePreDex
       cp app/build/outputs/apk/debug/app-debug.apk ${build_root}/generatedAPK/app-debug.apk
+      cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk ${build_root}/generatedAPK/app-debug-androidTest.apk
 
       VERSION_CODE=$(grep -E "^( *)versionCode" app/build.gradle | awk '{print $2}')
 
@@ -58,9 +59,21 @@ run:
       ANDROID_TEST_ARN=$(jq -r '.upload.arn' ${build_root}/android-aws/app-test-upload.txt)
 
       curl -T ${build_root}/generatedAPK/app-debug.apk "${ANDROID_APP_URL}"
-      curl -T ci/ui-test/app-debug-androidTest.apk "${ANDROID_TEST_URL}"
+      curl -T ${build_root}/generatedAPK/app-debug-androidTest.apk "${ANDROID_TEST_URL}"
 
       sleep 10
 
       aws devicefarm schedule-run --project-arn $PROJECT_ARN --app-arn "${ANDROID_APP_ARN}" --device-pool-arn "${DEVICE_POOL_ARN}" --name "test run build version: ${VERSION_CODE}" --test type=INSTRUMENTATION,testPackageArn="${ANDROID_TEST_ARN}" --output json > ${build_root}/android-aws/ui-test-results.txt
       cat ${build_root}/android-aws/ui-test-results.txt
+
+      RUN_ARN=$(jq -r '.run.arn' ${build_root}/android-aws/app-debug-upload.txt)
+      while [ "$(jq -r '.run.status' ${build_root}/android-aws/ui-test-results.txt)" != "COMPLETED" ]
+      do
+        echo "Waiting for UI results from devicefarm until finishes running the tests"
+        sleep 3m
+        aws devicefarm get-run --arn "$RUN_ARN" --output json > ${build_root}/android-aws/ui-test-results.txt
+        cat "status: $(jq -r '.run.status' ${build_root}/android-aws/ui-test-results.txt)"
+      done
+
+      cat ${build_root}/android-aws/ui-test-results.txt
+      cp ${build_root}/android-aws/ui-test-results.txt  ${build_root}/generatedAPK/ui-test-results.json
